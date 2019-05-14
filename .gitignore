@@ -1,3 +1,4 @@
+*.hdf5
 *.pyc
 .DS_Store
 data_processing/.DS_Store
