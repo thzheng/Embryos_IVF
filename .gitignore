@@ -1,4 +1,4 @@
 *.pyc
 .DS_Store
 data_processing/.DS_Store
-data_processing/CS231Snapshot/*
+CS231Snapshot/*
