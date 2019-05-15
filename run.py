@@ -6,8 +6,8 @@ from tensorflow.python.keras.optimizers import Adam
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import numpy as np
 
-model_type='my_model'
-# model_type='resnet'
+# model_type='my_model'
+model_type='resnet'
 
 x_ori, y_ori = get_resized_images(224, './CS231Snapshot')
 assert len(x_ori) == len(y_ori)       
@@ -49,7 +49,7 @@ elif model_type=='my_model':
   MyModel=get_my_model(15)
 
 MyModel.summary()
-MyAdam = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, decay=0.0002)
+MyAdam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, decay=0.0002)
 MyModel.compile(optimizer = MyAdam, loss = "categorical_crossentropy", metrics = ["accuracy"])
 MyEarlyStopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='min')
 MyMCP = ModelCheckpoint('.'+model_type+'.hdf5', save_best_only=True, monitor='val_loss', mode='min')
