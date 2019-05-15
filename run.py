@@ -7,7 +7,11 @@ from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint, Re
 import numpy as np
 
 x_ori, y_ori = get_resized_images(224, './CS231Snapshot')
-assert len(x_ori) == len(y_ori)       
+assert len(x_ori) == len(y_ori)
+
+print("labels and count:", np.unique(y_ori, return_counts= True))
+
+
 
 # Prepare x
 x_ori = np.asarray(x_ori, dtype='float32')
