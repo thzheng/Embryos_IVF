@@ -36,9 +36,11 @@ for curr in y_ori:
     class_int[curr]=next_class
     int_class[next_class]=curr
     next_class+=1
+
+num_class = next_class
 for n in range(len(y_ori)):
   correct_label = class_int[y_ori[n]]
-  y_ori[n] = np.zeros(15)
+  y_ori[n] = np.zeros(num_class)
   y_ori[n][correct_label] = 1
 y_ori = np.asarray(y_ori)
 
@@ -48,9 +50,9 @@ x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.
 
 # Train
 if model_type=='resnet':
-  MyModel=get_resnet50_baseline(15)
+  MyModel=get_resnet50_baseline(num_class)
 elif model_type=='my_model':
-  MyModel=get_my_model(15)
+  MyModel=get_my_model(num_class)
 
 MyModel.summary()
 MyAdam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, decay=0.0002)
