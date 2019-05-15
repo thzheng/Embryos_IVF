@@ -40,12 +40,12 @@ x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.
 # Train
 MyModel=get_resnet50_baseline(15)
 MyModel.summary()
-MyAdam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, decay=0.0)
+MyAdam = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, decay=0.0002)
 MyModel.compile(optimizer = MyAdam, loss = "categorical_crossentropy", metrics = ["accuracy"])
 MyEarlyStopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='min')
 MyMCP = ModelCheckpoint(".resnet.hdf5", save_best_only=True, monitor='val_loss', mode='min')
 MyReducelr = ReduceLROnPlateau(monitor='val_loss', factor=0.1, patience=5, verbose=1, epsilon=1e-4, mode='min')
-MyModel.fit(x = x_train, y = y_train, epochs = 200, batch_size = 32, verbose=1, callbacks=[MyEarlyStopping, MyMCP, MyReducelr], validation_data=(x_val, y_val))
+MyModel.fit(x = x_train, y = y_train, epochs = 50, batch_size = 16, verbose=1, callbacks=[MyEarlyStopping, MyMCP, MyReducelr], validation_data=(x_val, y_val))
 
 # Load the best check point
 MyModel.load_weights(filepath=".resnet.hdf5")
