@@ -6,8 +6,8 @@ from tensorflow.python.keras.optimizers import Adam
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import numpy as np
 
-# model_type='my_model'
-model_type='resnet'
+model_type='my_model'
+#model_type='resnet'
 
 x_ori, y_ori = get_resized_images(224, './CS231Snapshot')
 assert len(x_ori) == len(y_ori)
@@ -30,12 +30,22 @@ if model_type=='resnet':
 #Prepare y
 class_int = dict()
 int_class = dict()
-next_class = 0
+#next_class = 0
+#for curr in y_ori:
+#  if curr not in class_int:
+#    class_int[curr]=next_class
+#    int_class[next_class]=curr
+#    next_class+=1
+
+next_class = 1
 for curr in y_ori:
-  if curr not in class_int:
-    class_int[curr]=next_class
-    int_class[next_class]=curr
-    next_class+=1
+  if curr!='tm' and curr!='teb':
+    class_int[curr]=0
+  else:
+    if curr not in class_int:
+      class_int[curr]=next_class
+      int_class[next_class]=curr
+      next_class+=1
 
 num_class = next_class
 for n in range(len(y_ori)):
@@ -46,7 +56,7 @@ y_ori = np.asarray(y_ori)
 
 # Split for train, val, test
 x_train, x_test, y_train, y_test = train_test_split(x_ori, y_ori, test_size=0.2, random_state=1)
-x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.2, random_state=1)
+x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.3, random_state=1)
 
 # Train
 if model_type=='resnet':
@@ -55,7 +65,7 @@ elif model_type=='my_model':
   MyModel=get_my_model(num_class)
 
 MyModel.summary()
-MyAdam = Adam(lr=0.001, beta_1=0.9, beta_2=0.999, decay=0.0002)
+MyAdam = Adam(lr=0.0001, beta_1=0.9, beta_2=0.999, decay=0.0002)
 MyModel.compile(optimizer = MyAdam, loss = "categorical_crossentropy", metrics = ["accuracy"])
 MyEarlyStopping = EarlyStopping(monitor='val_loss', min_delta=0, patience=10, verbose=1, mode='min')
 MyMCP = ModelCheckpoint('.'+model_type+'.hdf5', save_best_only=True, monitor='val_loss', mode='min')

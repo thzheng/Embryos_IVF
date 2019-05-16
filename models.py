@@ -11,7 +11,7 @@ def get_resnet50_baseline(output_classes):
     layer.trainable = False
   model.add(Flatten())
   model.add(Dense(1024, activation='relu')) 
-  model.add(Dropout(0.7))
+  model.add(Dropout(0.5))
   model.add(Dense(output_classes, activation='softmax')) 
   return model
 
