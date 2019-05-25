@@ -6,6 +6,7 @@ from imageio import imread
 from PIL import Image
 import os
 import numpy as np
+import skimage
 
 """
 yield all images with the original H,W and always 3 channel
@@ -76,10 +77,15 @@ def get_resized_images(img_size, path, debug=0):
 Prepare image for resnet50
 """
 def prepare_resnet50(img_data):
-    mean_vec = np.array([0.485, 0.456, 0.406])
-    stddev_vec = np.array([0.229, 0.224, 0.225])
-    norm_img_data = np.zeros(img_data.shape).astype('float32')
-    for i in range(img_data.shape[0]):  
-         # for each pixel in each channel, divide the value by 255 to get value between [0, 1] and then normalize
-        norm_img_data[i,:,:] = (img_data[i,:,:]/255.0 - mean_vec[i]) / stddev_vec[i]
-    return norm_img_data
+  mean_vec = np.array([0.485, 0.456, 0.406])
+  stddev_vec = np.array([0.229, 0.224, 0.225])
+  norm_img_data = np.zeros(img_data.shape).astype('float32')
+  for i in range(img_data.shape[0]):  
+    # for each pixel in each channel, divide the value by 255 to get value between [0, 1] and then normalize
+    norm_img_data[i,:,:] = (img_data[i,:,:]/255.0 - mean_vec[i]) / stddev_vec[i]
+  return norm_img_data
+"""
+Resize a single channel image
+"""
+def resize_img(img, x, y):
+    return skimage.transform.resize(x_train_ori[i], (x, y))
