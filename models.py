@@ -1,5 +1,6 @@
 import tensorflow as tf
 from tensorflow.python.keras.applications import ResNet50
+from tensorflow.python.keras.applications.densenet import DenseNet121
 from tensorflow.python.keras.models import Sequential
 from tensorflow.python.keras.layers import Dense, Flatten, BatchNormalization, Dropout, Conv2D, MaxPooling2D
 from tensorflow.python.keras import regularizers
@@ -43,4 +44,11 @@ def get_my_model(output_classes):
   model.add(Dense(2048, activation='relu'))
   model.add(Dropout(0.7))
   model.add(Dense(output_classes, activation='softmax')) 
+  return model
+
+def get_densenet_baseline(output_classes):
+  model = Sequential()
+  model.add(DenseNet121(include_top=False, weights=None, input_tensor=None, input_shape=(64, 64, 1), pooling=None))
+  model.add(Flatten())
+  model.add(Dense(output_classes, activation='softmax', name='final')) 
   return model
