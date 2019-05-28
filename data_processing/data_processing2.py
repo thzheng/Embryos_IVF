@@ -31,6 +31,10 @@ def GetTimeFromText(text = "", debug=0):
 	else: 
 		return None
 
+
+def ProcessAllCSVs(path):
+	
+
 # def yield_image(path, debug=0):
 # 	pass
 # yield_image("../../EmbryoScopeAnnotatedData")
