@@ -50,5 +50,6 @@ def get_densenet_baseline(output_classes):
   model = Sequential()
   model.add(DenseNet121(include_top=False, weights=None, input_tensor=None, input_shape=(64, 64, 1), pooling=None))
   model.add(Flatten())
+  model.add(Dropout(0.7))
   model.add(Dense(output_classes, activation='softmax', name='final')) 
   return model
