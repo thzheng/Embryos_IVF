@@ -5,6 +5,9 @@ import re
 import os
 import pandas as pd
 
+
+time_name = ["tPB2","tPNa","tPNf","t2","t3","t4","t5","t6","t7","t8","t9","tSC","tM","tSB","tB","tEB","tHB","tDead"]
+
 def GetTimeFromImg(path):
 	img = Image.open(path).crop((727,770, 790, 790))
 	# img.save("../../EmbryoScopeAnnotatedData/Folder 1/try.jpg")
@@ -39,19 +42,40 @@ def GetLabelFromTime(time, file_path, dct = {}):
 	if m and n:
 		folder, well = m.group(0).strip(), n.group(0).strip()
 		try:
-			times = dct[int(folder),int(well)]
-			for st,et,label in times.items():
-				if time>=st and time<et: 
-				# if less than the ending time return label.
-					return label
+			if (nt(folder),int(well)) in dct:
+				times = dct[int(folder),int(well)]
+				for st,et,label in times.items():
+					if time>=st and time<et: 
+					# if less than the ending time return label.
+						return label
 		except:
 			if debug>0: print ("Error finding the label")
 
 
 
-def ProcessAllCSVs(path):
+def ProcessAllCSVs(folder_num, path):
+	res = dict()
 	annots = pd.read_csv('data.csv')
-	for col in annots.columns:
+	for row in annots.rows:
+		if row["well"]:
+			row_num = int(row["well"])
+		for label_header,i in enmerate(time_name):
+			# find the ending time
+			if not row[lebel_header]: continue
+			start_time = float(row[label_header])
+			next_time = float("inf")
+			for next_time in time_name[i:]:
+				if row[next_time]:
+					next_time = float(row[next_time])
+					break
+			if start_time and next_time
+			res[folder_num, row_num].append(label_header,start_time,end_time)
+	return res
+
+
+
+
+
 
 
 
