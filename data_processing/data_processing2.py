@@ -52,13 +52,12 @@ def GetLabelFromTime(time, file_path, dct = {}):
 			if debug>0: print ("Error finding the label")
 
 
-
-def ProcessAllCSVs(folder_num, path):
-	res = dict()
+# res is a dictionary storing the mapping from folder_num, well_num to a s list of (start time, ending time, label)
+def ProcessAllCSVs(folder_num, path,res):
 	annots = pd.read_csv('data.csv')
 	for row in annots.rows:
 		if row["well"]:
-			row_num = int(row["well"])
+			well_num = int(row["well"])
 		for label_header,i in enmerate(time_name):
 			# find the ending time
 			if not row[lebel_header]: continue
@@ -68,9 +67,8 @@ def ProcessAllCSVs(folder_num, path):
 				if row[next_time]:
 					next_time = float(row[next_time])
 					break
-			if start_time and next_time
-			res[folder_num, row_num].append(label_header,start_time,end_time)
-	return res
+			if start_time and next_time:
+				res[folder_num, well_num].append(label_header,start_time,end_time)
 
 
 
