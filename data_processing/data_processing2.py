@@ -37,8 +37,8 @@ def GetTimeFromText(text = "", debug=0):
 
 # dictionary with (folder number, well number), and the value as list of (start time, ending time, label)
 def GetLabelFromTime(time, file_path, dct = {}):
-	m = re.search(file_path,r'(?<=/Folder).*(?=/)')
-	n = re.search(file_path,r'(?<=WELL).*(?=/)')
+	m = re.search(r'(?<=/Folder).*(?=/)', file_path)
+	n = re.search(r'(?<=WELL).*(?=/)', file_path)
 	if m and n:
 		folder, well = m.group(0).strip(), n.group(0).strip()
 		try:
