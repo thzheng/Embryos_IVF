@@ -32,18 +32,18 @@ def GetTimeFromText(text = "", debug=0):
 	else: 
 		return None
 
-# dictionary with (folder number, well number), and the value as list of (ending time, label)
+# dictionary with (folder number, well number), and the value as list of (start time, ending time, label)
 def GetLabelFromTime(time, file_path, dct = {}):
-	m = re.search(r'(?<=/Folder).*(?=/)')
-	n = re.search(r'(?<=WELL).*(?=/)')
+	m = re.search(file_path,r'(?<=/Folder).*(?=/)')
+	n = re.search(file_path,r'(?<=WELL).*(?=/)')
 	if m and n:
 		folder, well = m.group(0).strip(), n.group(0).strip()
 		try:
 			times = dct[int(folder),int(well)]
-			for t, label in times:
-				if time > t: continue
+			for st,et,label in times.items():
+				if time>=st and time<et: 
 				# if less than the ending time return label.
-				return label
+					return label
 		except:
 			if debug>0: print ("Error finding the label")
 
@@ -52,7 +52,7 @@ def GetLabelFromTime(time, file_path, dct = {}):
 def ProcessAllCSVs(path):
 	annots = pd.read_csv('data.csv')
 	for col in annots.columns:
-		
+
 
 
 
