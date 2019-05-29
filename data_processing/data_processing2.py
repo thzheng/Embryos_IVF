@@ -42,7 +42,7 @@ def GetLabelFromTime(time, file_path, dct = {}):
 	if m and n:
 		folder, well = m.group(0).strip(), n.group(0).strip()
 		try:
-			if (nt(folder),int(well)) in dct:
+			if (int(folder),int(well)) in dct:
 				times = dct[int(folder),int(well)]
 				for st,et,label in times.items():
 					if time>=st and time<et: 
