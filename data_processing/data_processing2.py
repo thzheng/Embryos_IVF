@@ -3,6 +3,7 @@ import pytesseract
 import csv
 import re
 import os
+import pandas as pd
 
 def GetTimeFromImg(path):
 	img = Image.open(path).crop((727,770, 790, 790))
@@ -19,7 +20,7 @@ def GetTimeFromImg(path):
 
 def GetTimeFromText(text = "", debug=0):
 	if text is "": return None
-	m = re.search(r'.*(?=h)', text)
+	m = re.search(r'.*(?=h)', file_path)
 	if m:
 		label = m.group(0).strip()
 		try:
@@ -31,9 +32,30 @@ def GetTimeFromText(text = "", debug=0):
 	else: 
 		return None
 
+# dictionary with (folder number, well number), and the value as list of (ending time, label)
+def GetLabelFromTime(time, file_path, dct = {}):
+	m = re.search(r'(?<=/Folder).*(?=/)')
+	n = re.search(r'(?<=WELL).*(?=/)')
+	if m and n:
+		folder, well = m.group(0).strip(), n.group(0).strip()
+		try:
+			times = dct[int(folder),int(well)]
+			for t, label in times:
+				if time > t: continue
+				# if less than the ending time return label.
+				return label
+		except:
+			if debug>0: print ("Error finding the label")
+
+
 
 def ProcessAllCSVs(path):
-	
+	annots = pd.read_csv('data.csv')
+	for col in annots.columns:
+		
+
+
+
 
 # def yield_image(path, debug=0):
 # 	pass
