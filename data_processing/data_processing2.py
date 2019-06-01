@@ -4,101 +4,83 @@ import csv
 import re
 import os
 import pandas as pd
+from math import isnan
+from imageio import imread
+import numpy as np
 
 
-time_name = ["tPB2","tPNa","tPNf","t2","t3","t4","t5","t6","t7","t8","t9","tSC","tM","tSB","tB","tEB","tHB","tDead"]
+TIME_NAME = ["tPB2","tPNa","tPNf","t2","t3","t4","t5","t6","t7","t8","t9+","tSC","tM","tSB","tB","tEB","tHB","tDead"]
+
+# This returns the result as a dictionary: {well_num: (label_header, start_time, end_time)}
+def ProcessCSV(path):
+	annots = pd.read_csv(path, encoding = "ISO-8859-1")
+	res = {}
+	for index, row in annots.iterrows():
+		if row["Well"]:
+			well_num = int(row["Well"])
+			res[well_num] = []
+			for i, label_header in enumerate(TIME_NAME):
+				if(label_header in row):
+					start_time = float(row[label_header])
+					if isnan(start_time): continue
+					next_time = False
+					for next_time_label in TIME_NAME[i+1:]:
+						if next_time_label in row:
+							next_time = float(row[next_time_label])
+							if isnan(next_time): continue
+							else: break
+				if start_time and not isnan(start_time) and next_time and not isnan(next_time):
+					res[well_num].append((label_header,start_time,next_time))
+	return res
+
 
 def GetTimeFromImg(path):
 	img = Image.open(path).crop((727,770, 790, 790))
-	# img.save("../../EmbryoScopeAnnotatedData/Folder 1/try.jpg")
 	text = pytesseract.image_to_string(img ,config ='--psm 6')
-	start_ind = 0
-	for i,ch in enumerate(text):
-		if ch.isdigit(): 
-			start_ind = i
-			break
-	new_text = text[i:]
-	return GetTimeFromText(new_text)
+	time_match = re.search(r'([0-9]+).([0-9])', text)
+	if not time_match: return None
+	time_in_float = float(time_match.group(0))
+	if(time_match and time_in_float and (not isnan(time_in_float))): 
+		return time_in_float
+	else: return None
+
+def YieldImage(base_path, debug):
+	for folder_name_raw in os.listdir(base_path):
+		print("\n##################################\nProcessing Folder:", folder_name_raw)
+		folder_name_match = re.search(r'Folder ([0-9]+$)', folder_name_raw)
+		if not folder_name_match: continue
+		folder_num = int(folder_name_match.group(1))
+
+		# Drill down inside folder. Let's find the annotations first
+		annotations = None
+		for under_folder in os.listdir(os.path.join(base_path, folder_name_raw)):
+			annotation_match = re.search(r'P\.csv', under_folder)
+			if not annotation_match: continue
+			annotations = ProcessCSV(os.path.join(base_path, folder_name_raw, under_folder))
+			if debug > 0: print("Annotations: ", annotations)
+		if not annotations: 
+			print("[WARNING] ", folder_name_raw, " does not have annotations, passing...")
+			continue
+
+		# Now we have the annotation, go to each well
+		for well_name_raw in os.listdir(os.path.join(base_path, folder_name_raw)):
+			well_match = re.search(r'WELL([0-9]+$)', well_name_raw)
+			if not well_match: continue
+			well_num = int(well_match.group(1))
+			if debug > 0: print("Processing well: ", well_num)
+			for picture_name in os.listdir(os.path.join(base_path, folder_name_raw, well_name_raw)):
+				image_full_path = os.path.join(base_path, folder_name_raw, well_name_raw, picture_name)
+				time = GetTimeFromImg(image_full_path)
+				if debug > 0: print(image_full_path, time)
+				if not time: continue
+				if well_num not in annotations: 
+					print("[WARNING] Well ",well_num, " not in annotations, passing...")
+					continue
+				for (label_header,start_time,next_time) in annotations[well_num]:
+					if time >= start_time and time < next_time:
+						yield(np.swapaxes(np.swapaxes([imread(image_full_path),]*3, 0, 2), 0 ,1), label_header)
+						if debug > 0: print("Label: ", label_header)
+						break;
 
 
-def GetTimeFromText(text = "", debug=0):
-	if text is "": return None
-	m = re.search(r'.*(?=h)', file_path)
-	if m:
-		label = m.group(0).strip()
-		try:
-			res = float(label)
-			return res
-		except:
-			if debug>0: print ("Error finding the label")
-			return None
-	else: 
-		return None
-
-# dictionary with (folder number, well number), and the value as list of (start time, ending time, label)
-def GetLabelFromTime(time, file_path, dct = {}):
-	m = re.search(r'(?<=/Folder).*(?=/)', file_path)
-	n = re.search(r'(?<=WELL).*(?=/)', file_path)
-	if m and n:
-		folder, well = m.group(0).strip(), n.group(0).strip()
-		try:
-			if (int(folder),int(well)) in dct:
-				times = dct[int(folder),int(well)]
-				for st,et,label in times.items():
-					if time>=st and time<et: 
-					# if less than the ending time return label.
-						return label
-		except:
-			if debug>0: print ("Error finding the label")
-
-
-# res is a dictionary storing the mapping from folder_num, well_num to a s list of (start time, ending time, label)
-def ProcessAllCSVs(folder_num, path,res):
-	annots = pd.read_csv('data.csv')
-	for row in annots.rows:
-		if row["well"]:
-			well_num = int(row["well"])
-		for label_header,i in enmerate(time_name):
-			# find the ending time
-			if not row[lebel_header]: continue
-			start_time = float(row[label_header])
-			next_time = float("inf")
-			for next_time in time_name[i:]:
-				if row[next_time]:
-					next_time = float(row[next_time])
-					break
-			if start_time and next_time:
-				res[folder_num, well_num].append(label_header,start_time,end_time)
-
-
-
-
-
-
-
-
-
-
-# def yield_image(path, debug=0):
-# 	pass
-# yield_image("../../EmbryoScopeAnnotatedData")
-
-print(GetTimeFromImg('../../test_EmbryoScopeAnnotatedData/Folder 11/D2019.03.16_S00014_I3205_P_WELL02/D2019.03.16_S00014_I3205_P_WELL02_RUN016.JPG'))
-
-path = "../../test_EmbryoScopeAnnotatedData/"
-counter = 0
-for directory in os.listdir(path):
-	if directory[0] is ".": continue
-	file_path = os.path.join(path, directory)
-	for well in os.listdir(file_path):
-		if well[0] is ".": continue
-		full_path_to_well = os.path.join(file_path, well)
-		for img in os.listdir(full_path_to_well):
-			if img[0] is ".": continue
-			print(counter)
-			full_path_to_img = os.path.join(full_path_to_well, img)
-			print("current_image: " + full_path_to_img)
-			if GetTimeFromImg(full_path_to_img):
-				print(GetTimeFromImg(full_path_to_img))
-			else:
-				print("error")
+# YieldImage('../../EmbryoScopeAnnotatedData', 1)

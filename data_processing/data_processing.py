@@ -7,6 +7,7 @@ from PIL import Image
 import os
 import numpy as np
 import skimage
+from .data_processing2 import YieldImage as NewYieldImage
 
 """
 yield all images with the original H,W and always 3 channel
@@ -56,7 +57,7 @@ yield all images a resized size, all images are now squared, cropped from the mi
 def get_resized_images(img_size, path, debug=0):
   all_images = []
   labels = []
-  for image_array, label in yield_image(path, debug):
+  for image_array, label in NewYieldImage(path, debug):
     # for each image, let's determine if they higher or wider, and crop at the middle
     shape0 = image_array.shape[0]
     shape1 = image_array.shape[1]
@@ -66,6 +67,7 @@ def get_resized_images(img_size, path, debug=0):
     elif shape1 < shape0:
       d = shape0 - shape1
       image_array_cropped = image_array[d//2:-d//2, :, :]
+    else: image_array_cropped = image_array
     if debug > 0: print(image_array_cropped.shape, label)
 
     # Now let's resize!
@@ -89,3 +91,5 @@ Resize a single channel image
 """
 def resize_img(img, x, y):
     return skimage.transform.resize(x_train_ori[i], (x, y))
+
+# get_resized_images(224, '../../EmbryoScopeAnnotatedData', 1)
