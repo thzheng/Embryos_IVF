@@ -37,7 +37,7 @@ def ProcessCSV(path):
 def GetTimeFromImg(path):
 	img = Image.open(path).crop((727,770, 790, 790))
 	text = pytesseract.image_to_string(img ,config ='--psm 6')
-	time_match = re.search(r'([0-9]+).([0-9])', text)
+	time_match = re.search(r'([0-9]+)\.([0-9])', text)
 	if not time_match: return None
 	time_in_float = float(time_match.group(0))
 	if(time_match and time_in_float and (not isnan(time_in_float))): 
@@ -46,10 +46,10 @@ def GetTimeFromImg(path):
 
 def YieldImage(base_path, debug):
 	for folder_name_raw in os.listdir(base_path):
-		print("\n##################################\nProcessing Folder:", folder_name_raw)
 		folder_name_match = re.search(r'Folder ([0-9]+$)', folder_name_raw)
 		if not folder_name_match: continue
 		folder_num = int(folder_name_match.group(1))
+		print("\n##################################\nProcessing Folder: ", folder_num)
 
 		# Drill down inside folder. Let's find the annotations first
 		annotations = None
@@ -67,7 +67,7 @@ def YieldImage(base_path, debug):
 			well_match = re.search(r'WELL([0-9]+$)', well_name_raw)
 			if not well_match: continue
 			well_num = int(well_match.group(1))
-			if debug > 0: print("Processing well: ", well_num)
+			print("Processing Well: ", well_num)
 			for picture_name in os.listdir(os.path.join(base_path, folder_name_raw, well_name_raw)):
 				image_full_path = os.path.join(base_path, folder_name_raw, well_name_raw, picture_name)
 				time = GetTimeFromImg(image_full_path)
