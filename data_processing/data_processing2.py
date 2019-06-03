@@ -45,6 +45,9 @@ def GetTimeFromImg(path):
 	else: return None
 
 def YieldImage(base_path, debug):
+	num_total_pictures_overall = 0
+	num_unrecognized_time_overall = 0
+	num_recognized_but_not_labeled_overall = 0
 	for folder_name_raw in os.listdir(base_path):
 		folder_name_match = re.search(r'Folder ([0-9]+$)', folder_name_raw)
 		if not folder_name_match: continue
@@ -67,20 +70,38 @@ def YieldImage(base_path, debug):
 			well_match = re.search(r'WELL([0-9]+$)', well_name_raw)
 			if not well_match: continue
 			well_num = int(well_match.group(1))
-			print("Processing Well: ", well_num)
+			print("*********************\nProcessing Well: ", well_num)
+
+			num_total_pictures = 0
+			num_unrecognized_time = 0
+			num_recognized_but_not_labeled = 0
+
 			for picture_name in os.listdir(os.path.join(base_path, folder_name_raw, well_name_raw)):
+				picture_name_match = re.search(r'\.JPG$', picture_name)
+				if not picture_name_match: continue
+				num_total_pictures += 1
 				image_full_path = os.path.join(base_path, folder_name_raw, well_name_raw, picture_name)
 				time = GetTimeFromImg(image_full_path)
 				if debug > 0: print(image_full_path, time)
-				if not time: continue
+				if not time: 
+					num_unrecognized_time += 1
+					continue
 				if well_num not in annotations: 
 					print("[WARNING] Well ",well_num, " not in annotations, passing...")
 					continue
+				num_recognized_but_not_labeled += 1
 				for (label_header,start_time,next_time) in annotations[well_num]:
 					if time >= start_time and time < next_time:
 						yield(np.swapaxes(np.swapaxes([imread(image_full_path),]*3, 0, 2), 0 ,1), label_header)
+						num_recognized_but_not_labeled -= 1
 						if debug > 0: print("Label: ", label_header)
 						break;
+			print("Total number of pictures: %s, total number of unrecognizable time: %s, total number of recognized but not labeled: %s"%(num_total_pictures, num_unrecognized_time, num_recognized_but_not_labeled))
+			num_total_pictures_overall += num_total_pictures
+			num_unrecognized_time_overall += num_unrecognized_time
+			num_recognized_but_not_labeled_overall += num_recognized_but_not_labeled
+
+	print("[ALL DONE] Total number of pictures: %s, total number of unrecognizable time: %s, total number of recognized but not labeled: %s"%(num_total_pictures_overall, num_unrecognized_time_overall, num_recognized_but_not_labeled_overall))
 
 
 # YieldImage('../../EmbryoScopeAnnotatedData', 1)
