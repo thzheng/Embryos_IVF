@@ -9,38 +9,20 @@ import numpy as np
 import pickle
 
 #model_type='my_model'
-#model_type='resnet'
 model_type='DenseNet'
 
-#data_path='../EmbryoScopeAnnotatedData'
-data_path='./Data'
+data=pickle.load( open( "dump.p", "rb" ) )
 
-# Resnet requires H and W >=224
-if model_type=='DenseNet':
-  data = get_resized_images(64, data_path, False)
-else:
-  data = get_resized_images(224, data_path, True)
-#assert len(x_ori) == len(y_ori)
-
-#x_ori, y_ori = get_resized_images(64, data_path, False)
-print("labels and count:", np.unique(y_ori, return_counts= True))
-
-
-
-# Prepare x
-x_ori = np.asarray(x_ori, dtype='float32')
-
-if model_type=='resnet':
-  #  Change to Batch, Channel, W, H
-  x_ori = np.swapaxes(x_ori, 1, 3)
-  for n in range(x_ori.shape[0]):
-    x_ori[n] = prepare_resnet50(x_ori[n])
-  #  Change to Batch, W, H, Channel
-  x_ori = np.swapaxes(x_ori, 1, 3)
-
-# To one channel
-if model_type=='DenseNet':
-  x_ori = np.mean(x_ori, axis=3, keepdims=True)
+x_ori=[]
+y_ori=[]
+tag=[]
+for well in data:
+  for i in range(len(data[well])):
+    x_ori.append(data[well][i][0])
+    y_ori.append(data[well][i][1])
+    tag.append(well)
+assert len(x_ori) == len(y_ori)
+assert len(x_ori) == len(tag)
 
 #Prepare y
 class_int = dict()
@@ -48,7 +30,7 @@ int_class = dict()
 
 next_class = 1
 for curr in y_ori:
-  if curr!='tm' and curr!='teb':
+  if curr!='tM' and curr!='tEB':
     class_int[curr]=0
   else:
     if curr not in class_int:
@@ -57,15 +39,41 @@ for curr in y_ori:
       next_class+=1
 
 num_class = next_class
+print("num_class: ", num_class)
 for n in range(len(y_ori)):
   correct_label = class_int[y_ori[n]]
   y_ori[n] = np.zeros(num_class)
   y_ori[n][correct_label] = 1
-y_ori = np.asarray(y_ori)
 
-# Split for train, val, test
-x_train, x_test, y_train, y_test = train_test_split(x_ori, y_ori, test_size=0.2, random_state=1)
-x_train, x_val, y_train, y_val = train_test_split(x_train, y_train, test_size=0.3, random_state=1)
+# Split for train, val, test, split by well
+x_train=[]
+y_train=[]
+x_val=[]
+y_val=[]
+x_test=[]
+y_test=[]
+for i in range(len(x_ori)):
+  if tag[i]=='9_4' or tag[i]=='9_5' or tag[i]=='9_6':
+    x_val.append(x_ori[i])
+    y_val.append(y_ori[i])
+  elif tag[i]=='8_2' or tag[i]=='8_3' or tag[i]=='8_4':
+    x_test.append(x_ori[i])
+    y_test.append(y_ori[i])
+  else:
+    x_train.append(x_ori[i])
+    y_train.append(y_ori[i])
+
+x_train = np.asarray(x_train, dtype='float32')
+x_train = x_train[..., None]
+y_train = np.asarray(y_train)
+x_val = np.asarray(x_val, dtype='float32')
+x_val = x_val[..., None]
+y_val = np.asarray(y_val)
+x_test = np.asarray(x_test, dtype='float32')
+x_test = x_test[..., None]
+y_test = np.asarray(y_test)
+
+
 
 # Train
 if model_type=='resnet':
