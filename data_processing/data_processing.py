@@ -8,6 +8,7 @@ import os
 import numpy as np
 import skimage
 from .data_processing2 import YieldImage as NewYieldImage
+from collections import defaultdict
 
 """
 yield all images with the original H,W and always 3 channel
@@ -54,10 +55,9 @@ def yield_image(path, debug=0):
 """
 yield all images a resized size, all images are now squared, cropped from the middle
 """
-def get_resized_images(img_size, path, debug=0):
-  all_images = []
-  labels = []
-  for image_array, label in NewYieldImage(path, debug):
+def get_resized_images(img_size, path, pad_to_3channel, debug=0):
+  ret = defaultdict(list)
+  for image_array, label, folder_num, well_num in NewYieldImage(path, pad_to_3channel, debug):
     # for each image, let's determine if they higher or wider, and crop at the middle
     shape0 = image_array.shape[0]
     shape1 = image_array.shape[1]
@@ -72,9 +72,10 @@ def get_resized_images(img_size, path, debug=0):
 
     # Now let's resize!
     resized_image_array = np.array(Image.fromarray(image_array_cropped).resize((img_size, img_size)))
-    all_images.append(resized_image_array)
-    labels.append(label)
-  return all_images, labels
+    well_id = str(folder_num) + "_" + str(well_num)
+    ret[well_id].append((resized_image_array, label))
+  return ret
+
 """
 Prepare image for resnet50
 """

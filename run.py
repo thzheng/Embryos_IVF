@@ -6,6 +6,7 @@ from tensorflow.python.keras.models import Model, load_model
 from tensorflow.python.keras.optimizers import Adam
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import numpy as np
+import pickle
 
 #model_type='my_model'
 #model_type='resnet'
@@ -16,11 +17,12 @@ data_path='./Data'
 
 # Resnet requires H and W >=224
 if model_type=='DenseNet':
-  x_ori, y_ori = get_resized_images(64, data_path)
+  data = get_resized_images(64, data_path, False)
 else:
-  x_ori, y_ori = get_resized_images(224, data_path)
-assert len(x_ori) == len(y_ori)
+  data = get_resized_images(224, data_path, True)
+#assert len(x_ori) == len(y_ori)
 
+#x_ori, y_ori = get_resized_images(64, data_path, False)
 print("labels and count:", np.unique(y_ori, return_counts= True))
 
 
