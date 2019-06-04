@@ -44,7 +44,7 @@ def GetTimeFromImg(path):
 		return time_in_float
 	else: return None
 
-def YieldImage(base_path, debug):
+def YieldImage(base_path, pad_to_3channel, debug):
 	num_total_pictures_overall = 0
 	num_unrecognized_time_overall = 0
 	num_recognized_but_not_labeled_overall = 0
@@ -92,7 +92,11 @@ def YieldImage(base_path, debug):
 				num_recognized_but_not_labeled += 1
 				for (label_header,start_time,next_time) in annotations[well_num]:
 					if time >= start_time and time < next_time:
-						yield(np.swapaxes(np.swapaxes([imread(image_full_path),]*3, 0, 2), 0 ,1), label_header)
+						if pad_to_3channel:
+							image_array = np.swapaxes(np.swapaxes([imread(image_full_path),]*3, 0, 2), 0 ,1)
+						else:
+							image_array = imread(image_full_path)
+						yield(image_array, label_header, folder_num, well_num)
 						num_recognized_but_not_labeled -= 1
 						if debug > 0: print("Label: ", label_header)
 						break;
