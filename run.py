@@ -13,12 +13,9 @@ model_type='DenseNet'
 
 # Resnet requires H and W >=224
 if model_type=='DenseNet':
-  x_ori, y_ori = get_resized_images(64, '../EmbryoScopeAnnotatedData')
+  data = get_resized_images(64, '../EmbryoScopeAnnotatedData', False)
 else:
-  x_ori, y_ori = get_resized_images(224, '../EmbryoScopeAnnotatedData')
-assert len(x_ori) == len(y_ori)
-
-print("labels and count:", np.unique(y_ori, return_counts= True))
+  data = get_resized_images(224, '../EmbryoScopeAnnotatedData', True)
 
 
 
