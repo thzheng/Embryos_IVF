@@ -9,6 +9,7 @@ import numpy as np
 import skimage
 
 (x_train_ori, y_train_ori), (x_test_ori, y_test_ori) = fashion_mnist.load_data()
+print(x_train_ori.shape, y_train_ori.shape)
 x_train=[]
 for i in range(len(x_train_ori)):
   x_train.append(skimage.transform.resize(x_train_ori[i], (64, 64, 1)))

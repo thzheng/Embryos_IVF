@@ -11,11 +11,14 @@ import numpy as np
 #model_type='resnet'
 model_type='DenseNet'
 
+#data_path='../EmbryoScopeAnnotatedData'
+data_path='./Data'
+
 # Resnet requires H and W >=224
 if model_type=='DenseNet':
-  x_ori, y_ori = get_resized_images(64, '../EmbryoScopeAnnotatedData')
+  x_ori, y_ori = get_resized_images(64, data_path)
 else:
-  x_ori, y_ori = get_resized_images(224, '../EmbryoScopeAnnotatedData')
+  x_ori, y_ori = get_resized_images(224, data_path)
 assert len(x_ori) == len(y_ori)
 
 print("labels and count:", np.unique(y_ori, return_counts= True))
