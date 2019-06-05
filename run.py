@@ -7,8 +7,16 @@ from tensorflow.python.keras.optimizers import Adam
 from tensorflow.python.keras.callbacks import EarlyStopping, ModelCheckpoint, ReduceLROnPlateau
 import numpy as np
 import pickle
+import tensorflow as tf
+from tensorflow.python.keras.backend import set_session
+config = tf.ConfigProto()
+config.gpu_options.allow_growth = True
+config.log_device_placement = True
+sess = tf.Session(config=config)
+set_session(sess)
 
 #model_type='my_model'
+#model_type='DenseNet_full'
 model_type='DenseNet'
 
 data=pickle.load( open( "dump.p", "rb" ) )
@@ -28,8 +36,16 @@ assert len(x_ori) == len(tag)
 class_int = dict()
 int_class = dict()
 
-next_class = 1
+next_class = 0
+#next_class = 1
 for curr in y_ori:
+  #"""
+  if curr not in class_int:
+    class_int[curr]=next_class
+    int_class[next_class]=curr
+    next_class+=1
+  #"""
+  """
   if curr!='tM' and curr!='tEB':
     class_int[curr]=0
   else:
@@ -37,6 +53,7 @@ for curr in y_ori:
       class_int[curr]=next_class
       int_class[next_class]=curr
       next_class+=1
+  """
 
 num_class = next_class
 print("num_class: ", num_class)
@@ -78,6 +95,8 @@ y_test = np.asarray(y_test)
 # Train
 if model_type=='resnet':
   MyModel=get_resnet50_baseline(num_class)
+elif model_type=='DenseNet_full':
+  MyModel=get_densenet_baseline(num_class)
 elif model_type=='DenseNet':
   TModel=get_densenet_baseline(10)
   TModel.load_weights(filepath='.'+model_type+'_t.hdf5')
@@ -91,7 +110,8 @@ elif model_type=='DenseNet':
   print("Model before FC:")
   XModel.summary()
   x = XModel.layers[-1].output
-  x = Dropout(0.7)(x)
+  x = Dropout(0.8)(x)
+  #x = Dense(2048, activation='relu')(x)
   x = Dense(num_class, activation='softmax')(x)
   MyModel = Model(XModel.inputs, x)
 elif model_type=='my_model':
