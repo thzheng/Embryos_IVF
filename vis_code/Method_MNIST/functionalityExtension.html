@@ -1,0 +1,555 @@
+<html>
+	<head>
+		<style type="text/css">
+
+			div{
+				margin: 20px;
+
+			}
+			/*svg {
+				width:1500px;
+				height:1300px;
+			}
+
+			#PCA_2 svg{
+				width:1800px;
+				height:1150px;
+			}*/
+			button{
+				width:80px;
+				height:40px;
+
+			}
+
+
+		</style>
+		<script src="https://d3js.org/d3.v4.min.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+
+
+		<script type="text/javascript">
+		//JS code for the project
+			generate_TSNE();
+
+			function getTSNE(){
+					d3.select('#TSNE>svg').remove();
+					generate_TSNE()
+			}
+
+			function getPCA(){
+					d3.select('#TSNE>svg').remove();
+					generate_PCA()
+			}
+
+			function getGroup(){
+				d3.select('#TSNE>svg').remove();
+				d3.csv("TSNE_coords.csv", initiate, groupData);
+			}
+
+			function groupData(error,data){
+				//if error, throw error
+					if (error) throw error;
+					var xValues = []
+					var yValues = []
+					data.forEach(
+						function(d,i){
+							//create two arrays of values
+							xValues.push(d.X)
+							yValues.push(d.Y)
+							// console.log(d.X)
+						}
+					)	
+					xmax = Math.max.apply(null,xValues)
+					xmin = Math.min.apply(null,xValues)
+					ymax = Math.max.apply(null,yValues)
+					ymin = Math.min.apply(null,yValues)
+					// the max and the min values
+					// console.log(xmax)
+					// console.log(ymax)
+					// console.log(xmin)
+					// console.log(ymin)
+					xmax = Math.ceil(xmax/10.00)*10;
+					xmin = Math.floor(xmin/10.00)*10;
+					ymax = Math.ceil(ymax/10.00)*10;
+					ymin = Math.floor(ymin/10.00)*10;
+					// console.log(xmax)
+					// console.log(ymax)
+					// console.log(xmin)
+					// console.log(ymin)			
+					var svg = d3.select('#TSNE').append('svg').attr('height',1300).attr('width',1300)
+					.style("background-color", "#FFF0F5");
+					//append title
+					svg.append('g')
+					.attr("transform","translate("+500+","+50+")")
+					.append('text')
+					.text('Dots Cluster')
+					.style('font-size',30)
+
+					//store the legends
+					data_2 = []
+					for(var m = 0; m<1000; m=m+100){
+						data_2.push(data[m]);
+					}
+
+					var range1 = -55*9
+					var range2 = 55*9
+					var xscale= d3.scaleLinear().domain([xmin,xmax]).range([0,1200]);
+					var yscale= d3.scaleLinear().domain([ymin,ymax]).range([900,0]);
+					//create canvas
+					var x_axis = d3.axisBottom().scale(xscale).ticks(20);
+					var y_axis = d3.axisLeft().scale(yscale).ticks(20);
+
+					// append the scale
+					// append all the label rectangles
+					svg
+					.append('g')
+					.attr("transform","translate("+1200+","+50+")")
+					.selectAll('rect')
+					.data(data_2).enter().append('rect')
+					.attr('x',0)
+					.attr('y',function(d,i){
+						return i*20
+					})
+					.attr('height',15)
+					.attr('width',15)
+					.style('fill', function(d,i){return d.color})
+					svg
+					.append('g')
+					.attr("transform","translate("+1240+","+63+")")
+					.selectAll('rect')
+					.data(data_2).enter().append('text')
+					.text(function(d,i){return d.label})
+					.attr('transform',function(d,i){var res ='translate('+0+','+
+						i*20+')';
+						return res;
+					})
+					.style('font-size',function(d,i){return 15})
+					.style('fill', function(d,i){return d.color})
+
+					// create the 
+					var g = svg.append('g').attr("transform","translate("+600+","+600+")");
+					var nodes = g.selectAll('circle').data(data).enter().append('circle')
+					// .attr("cx",function(d,i) { return (xscale(d.X));})
+	    //    			.attr("cy",function(d,i) { return (yscale(d.Y));})
+	        		.attr("r","3")
+					.attr('fill', function(d,i){return d.color;});
+					nodes.each(function(d){return this._current = d;})
+
+					var simulation = d3.forceSimulation(data)
+	    			.force("charge", d3.forceCollide().radius(4))
+	    			.force("r", d3.forceRadial(function(d) {
+	    				
+	    				return (1+d.label)*25
+	    			 }))
+	    			.on("tick", function(){
+	    				nodes
+	     			 	.attr("cx", function(d) { return d.x; })
+	      				.attr("cy", function(d) { return d.y; });
+	    			});
+				//mouse click
+					nodes.on('mouseover',function(d,i){
+					// console.log(d.Y)
+					d3.select(this).style('fill','white');
+
+					xcoord = xscale(d.X)+150;
+					ycoord = yscale(d.Y)-200;
+					// console.log("xcoord: "+d.X)
+					// console.log("yccord: "+d.Y)
+					var g2 = svg.append('g').attr("transform","translate("+100+","+200+")").attr('id','detail_view_1')
+
+					var graph = g2.append('g').attr("transform","translate("+330+","+235+")").attr('id','detail_view_1')	// 
+					var link = 'pictures/img'+i+'.png'
+					graph.append('image')
+					.attr('href',link)
+					.attr('x',0)
+					.attr('y',0)
+					.attr('height',350)
+					.attr('width',350);	
+					// append label on it
+					// graph.append('text')
+					// .attr("transform","translate("+150+","+(25)+")")
+					// .text('Image Block');
+					// var label = d.label
+					var str = 'lable: '+d.label
+					graph.append('text')
+					.attr("transform","translate("+150+","+(70)+")")
+						.text(str);
+					}).on('mouseout',function(d,i){
+						// console.log("d: "+ color(arr.indexOf(d.value)))		
+							d3.select(this).style('fill',function(d,i){return d.color;});
+							d3.select('#detail_view_1').remove();
+						;});	
+			}
+		
+			function generate_TSNE(){
+				d3.csv("TSNE_coords.csv", initiate, processing_data);
+			}
+
+			function generate_PCA(){
+				d3.csv("PCA_coords.csv",initiate,generatePCA);
+			}
+
+			function initiate(d){
+					result = {X: d['x_coord'],Y: d['y_coord'],color:d['color'],
+					label:d['label']}
+					// incomeWithExpenditure.push(result);
+					return result;
+			} 
+
+			function processing_data(error,data){
+				//if error, throw error
+				if (error) throw error;
+
+				var xValues = []
+				var yValues = []
+				data.forEach(
+					function(d,i){
+						//create two arrays of values
+						xValues.push(d.X)
+						yValues.push(d.Y)
+						// console.log(d.X)
+					}
+
+				)	
+				xmax = Math.max.apply(null,xValues)
+				xmin = Math.min.apply(null,xValues)
+				ymax = Math.max.apply(null,yValues)
+				ymin = Math.min.apply(null,yValues)
+				// the max and the min values
+
+				// console.log(xmax)
+				// console.log(ymax)
+				// console.log(xmin)
+				// console.log(ymin)
+
+				xmax = Math.ceil(xmax/10.00)*10;
+				xmin = Math.floor(xmin/10.00)*10;
+
+				ymax = Math.ceil(ymax/10.00)*10;
+				ymin = Math.floor(ymin/10.00)*10;
+
+				// console.log(xmax)
+				// console.log(ymax)
+				// console.log(xmin)
+				// console.log(ymin)
+				
+				var svg = d3.select('#TSNE').append('svg')
+				.attr('height',1200).attr('width',1400)
+				.style("background-color", "#F0FFF0");
+
+				//append title
+				svg.append('g')
+				.attr("transform","translate("+500+","+50+")")
+				.append('text')
+				.text('TSNE Scatter Dots')
+				.style('font-size',30)
+
+				//store the legends
+				data_2 = []
+				for(var m = 0; m<1000; m=m+100){
+					data_2.push(data[m]);
+				}
+
+				var range1 = -55*9
+				var range2 = 55*9
+				var xscale= d3.scaleLinear().domain([xmin,xmax]).range([0,1200]);
+				var yscale= d3.scaleLinear().domain([ymin,ymax]).range([900,0]);
+				//create canvas
+				var x_axis = d3.axisBottom().scale(xscale).ticks(20);
+				var y_axis = d3.axisLeft().scale(yscale).ticks(20);
+
+				// append the scale
+				console.log(data_2)
+				// append all the label rectangles
+				svg
+				.append('g')
+				.attr("transform","translate("+1200+","+50+")")
+				.selectAll('rect')
+				.data(data_2).enter().append('rect')
+				.attr('x',0)
+				.attr('y',function(d,i){
+					return i*20
+				})
+				.attr('height',15)
+				.attr('width',15)
+				.style('fill', function(d,i){return d.color})
+
+				svg
+				.append('g')
+				.attr("transform","translate("+1240+","+63+")")
+				.selectAll('rect')
+				.data(data_2).enter().append('text')
+				.text(function(d,i){return d.label})
+				.attr('transform',function(d,i){var res ='translate('+0+','+
+					i*20+')';
+					return res;
+				})
+				.style('font-size',function(d,i){return 15})
+				.style('fill', function(d,i){return d.color})
+
+				// create the 
+				var g = svg.append('g').attr("transform","translate("+100+","+200+")");
+
+				svg.append('g')
+				.attr("transform","translate("+100+","+(1100)+")")
+				.call(x_axis); // append x axis
+
+				svg.append('g')
+				.attr("transform","translate("+(100)+","+(200)+")")
+				.call(y_axis);// append y axis
+
+
+				g.selectAll('circle').data(data).enter().append('circle')
+				.attr("cx",function(d,i) { return (xscale(d.X));})
+       			.attr("cy",function(d,i) { return (yscale(d.Y));})
+        		.attr("r","3")
+				.attr('fill', function(d,i){return d.color;})
+				.each(function(d){return this._current = d;})
+				//mouse click
+				.on('mouseover',function(d,i){
+					// console.log(d.Y)
+					d3.select(this).style('fill','white');
+
+					xcoord = xscale(d.X)+150;
+					ycoord = yscale(d.Y)-200;
+
+					// console.log("xcoord: "+d.X)
+					// console.log("yccord: "+d.Y)
+					var g2 = svg.append('g').attr("transform","translate("+100+","+200+")").attr('id','detail_view_1')
+
+					var graph = g2.append('g').attr("transform","translate("+xcoord+","+ycoord+")").attr('id','detail_view_1')					
+					// create a background
+					graph.append('rect')
+					.attr('x',-50)
+					.attr('y',0)
+					.attr('height',400)
+					.attr('width' ,450)
+					.style('fill','azure');
+
+					//create the imgages
+					var link = 'pictures/img'+i+'.png'
+					graph.append('image')
+					.attr('href',link)
+					.attr('x',0)
+					.attr('y',0)
+					.attr('height',350)
+					.attr('width',350);	
+
+					// append label on it
+					graph.append('text')
+					.attr("transform","translate("+150+","+(25)+")")
+					.text('Image Block');
+
+					// var label = d.label
+					var str = 'lable: '+d.label
+					graph.append('text')
+					.attr("transform","translate("+150+","+(70)+")")
+					.text(str);
+				}).on('mouseout',function(d,i){
+					// console.log("d: "+ color(arr.indexOf(d.value)))		
+						d3.select(this).style('fill',function(d,i){return d.color;});
+						d3.select('#detail_view_1').remove();
+					;})
+				;	
+					//insert images
+				
+				svg.append('g').attr("transform","translate("+720+","+1150+")")
+					.append('text')
+					.text(
+					'X-axis'
+					)
+					.style('font-size',15);
+
+					svg.append('g').attr("transform","translate("+(50)+","+600+")")
+					.append('text')
+					.attr("transform","rotate(-90)")	
+					.text(
+						'Y-axis'
+					)
+					.style('font-size',15);
+				
+				}
+
+			function generatePCA(error,data){
+				if (error) throw error;
+				var svg = d3.select('#TSNE').append('svg')
+				.attr('height',1100).attr('width',1700)
+				.style("background-color", "#E6E6FA");
+				var g = svg.append('g').attr("transform","translate("+200+","+200+")");
+				var xValues = []
+				var yValues = []
+				data.forEach(
+					function(d,i){
+						//create two arrays of values
+						xValues.push(d.X)
+						yValues.push(d.Y)
+						// console.log(d.X)
+					}
+				)			
+				xmax = Math.max.apply(null,xValues)
+				xmin = Math.min.apply(null,xValues)
+				ymax = Math.max.apply(null,yValues)
+				ymin = Math.min.apply(null,yValues)
+				// the max and the min values
+
+				xmax = Math.ceil(xmax/10.00)*10;
+				xmin = Math.floor(xmin/10.00)*10-10;
+
+				ymax = Math.ceil(ymax/10.00)*10;
+				ymin = Math.floor(ymin/10.00)*10-10;
+
+				// set up the scale in the graph
+				//reverse the yaxis
+				var yscale= d3.scaleLinear().domain([ymin,ymax]).range([700,0]);
+				var xscale= d3.scaleLinear().domain([xmin,xmax]).range([0,1400]);
+
+				
+
+				var x_axis = d3.axisBottom().scale(xscale).ticks(10);
+				var y_axis = d3.axisLeft().scale(yscale).ticks(10);
+				//append x and y axises
+
+				g.append('g')
+				.attr("transform","translate("+0+","+(700)+")")
+				.call(x_axis); // append x axis
+
+				g.append('g')
+				.attr("transform","translate("+(0)+","+(0)+")")
+				.call(y_axis);// append y axis
+
+				g.selectAll('circle').data(data).enter().append('circle')
+				.attr("cx",function(d,i) { return xscale(d.X);})
+       			.attr("cy",function(d,i) { return yscale(d.Y);})
+        		.attr("r","3")
+				.attr('fill', function(d,i){return d.color;})
+				.each(function(d){return this._current = d;})
+				//mouse click
+				.on('mouseover',function(d,i){
+					// console.log(d.Y)
+					d3.select(this).style('fill','white');
+					var graph = svg.append('g').attr("transform","translate("+(xscale(d.X)+330)+","+(yscale(d.Y)+20)+")")
+					.attr('id','detail_view_2')
+
+					// console.log(d.X)
+					// console.log(xmin)
+					// console.log(d.Y)
+
+					// create a background
+					graph.append('rect')
+					.attr('x',-50)
+					.attr('y',0)
+					.attr('height',400)
+					.attr('width' ,450)
+					.style('fill','azure');
+
+					//create the imgages
+					var link = 'pictures/img'+i+'.png'
+					graph.append('image')
+					.attr('href',link)
+					.attr('x',0)
+					.attr('y',0)
+					.attr('height',350)
+					.attr('width',350);	
+
+					// append label on it
+					graph.append('text')
+					.attr("transform","translate("+150+","+(25)+")")
+					.text('Image Block');
+
+					// var label = d.label
+					var str = 'lable: '+d.label
+					graph.append('text')
+					.attr("transform","translate("+150+","+(70)+")")
+					.text(str);
+
+				}).on('mouseout',function(d,i){
+				// console.log("d: "+ color(arr.indexOf(d.value)))		
+					d3.select(this).style('fill',function(d,i){return d.color;});
+					d3.select('#detail_view_2').remove();
+				;});
+
+				data_2 = []
+				for(var m = 0; m<1000; m=m+100){
+					data_2.push(data[m]);
+				}
+				//append the label and legend
+				svg
+				.append('g')
+				.attr("transform","translate("+1320+","+50+")")
+				.selectAll('rect')
+				.data(data_2).enter().append('rect')
+				.attr('x',0)
+				.attr('y',function(d,i){
+					return i*20
+				})
+				.attr('height',15)
+				.attr('width',15)
+				.style('fill', function(d,i){return d.color})
+
+				svg
+				.append('g')
+				.attr("transform","translate("+1360+","+63+")")
+				.selectAll('rect')
+				.data(data_2).enter().append('text')
+				.text(function(d,i){return d.label})
+				.attr('transform',function(d,i){var res ='translate('+0+','+
+					i*20+')';
+					return res;
+				})
+				.style('font-size',function(d,i){return 15})
+				.style('fill', function(d,i){return d.color})
+
+				svg.append('g')
+				.attr("transform","translate("+700+","+50+")")
+				.append('text')
+				.text('PCA Scatter Dots')
+				.style('font-size',30)
+
+				svg.append('g').attr("transform","translate("+750+","+950+")")
+				.append('text')
+				.text(
+				'X-axis'
+				)
+				.style('font-size',15);
+
+				svg.append('g').attr("transform","translate("+(100)+","+600+")")
+				.append('text')
+				.attr("transform","rotate(-90)")	
+				.text(
+					'Y-axis'
+				)
+				.style('font-size',15);
+				}
+
+
+		</script>
+
+	</head>
+
+	<body>
+
+		<div id = 'TSNE'>
+			<button id= "Force_TSNE"  onclick="getGroup()">Group</button>
+			<button id= "Unforce_TSNE" onclick="getTSNE()">TSNE</button>
+			<button id = "Unforce_PCA" onclick="getPCA()">PCA</button>
+		</div>
+		<!-- <div id = 'PCA_2'>
+			<button id = "Force_PCA" onclick="groupingPCA()">Group</button>
+		</div> -->
+
+		<div>
+			<h2>
+				Summary of the Graph
+			</h2>
+
+			<p>
+			If we project all 786 dimensional points from a data set on a plane using TSNE method, the pattern of the scatter plots is not linear, and neighboring points form clusters. However, if we project the same data set to a plane using PCA method. we have two Principal vectors(directions). The first one is the max variance vector, the second one the second-max variance vector. And we can see the points are in linear realtion roughly.
+
+			</p>
+
+		</div>
+		
+
+	</body>
+
+</html>
